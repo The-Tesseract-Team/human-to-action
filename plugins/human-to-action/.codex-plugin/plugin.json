@@ -1,0 +1,37 @@
+{
+  "name": "human-to-action",
+  "version": "0.1.0",
+  "description": "Preserve human intent and route prompt refinement to the right destination.",
+  "author": {
+    "name": "Benny Ebere",
+    "url": "https://github.com/tesseractT"
+  },
+  "homepage": "https://github.com/The-Tesseract-Team/agent-extensions#humantoaction",
+  "repository": "https://github.com/The-Tesseract-Team/agent-extensions",
+  "license": "MIT",
+  "keywords": [
+    "agents",
+    "context",
+    "prompts",
+    "prompt-engineering",
+    "productivity"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "HumanToAction",
+    "shortDescription": "Turn human intent into agent-ready action",
+    "longDescription": "Adds a lightweight context preflight, refines same-task instructions internally, and creates paste-ready prompts only for handoffs, new tasks, other agents, or explicit artifacts.",
+    "developerName": "The Tesseract Team",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/The-Tesseract-Team/agent-extensions#humantoaction",
+    "privacyPolicyURL": "https://github.com/The-Tesseract-Team/agent-extensions/blob/main/PRIVACY.md",
+    "defaultPrompt": [
+      "Refine this instruction internally and continue",
+      "Audit this agent prompt without rewriting it",
+      "Create a paste-ready prompt for another agent"
+    ]
+  }
+}

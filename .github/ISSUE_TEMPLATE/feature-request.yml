@@ -1,0 +1,32 @@
+name: Feature request
+description: Propose a focused improvement to an extension or the marketplace
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user-visible problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest complete change and its intended destination.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Privacy, security, and compatibility
+      description: Note any new network, persistence, telemetry, hook, platform, or model dependency.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Optional alternatives or workarounds.

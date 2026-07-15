@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$PLUGIN_ROOT/hooks/human-to-action.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

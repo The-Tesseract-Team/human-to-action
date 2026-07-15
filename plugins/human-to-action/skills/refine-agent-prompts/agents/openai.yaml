@@ -1,0 +1,7 @@
+interface:
+  display_name: "HumanToAction Prompt Refiner"
+  short_description: "Refine agent prompts without losing context"
+  default_prompt: "Use $human-to-action:refine-agent-prompts to turn this brief into a context-aware, paste-ready prompt for another agent."
+
+policy:
+  allow_implicit_invocation: true

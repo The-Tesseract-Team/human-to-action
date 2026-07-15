@@ -1,0 +1,54 @@
+name: Bug report
+description: Report reproducible behavior that differs from the documentation
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting a problem. Remove private prompts, credentials, and personal data before submitting.
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Linux
+        - Other or unsupported
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Describe the intended outcome without including sensitive prompt content.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include a minimal, sanitized reproduction and any safe error text.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Checks performed
+      description: Note whether you restarted the app, started a new task, and confirmed the installed marketplace and version.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed credentials, private prompts, personal data, and private project details.
+          required: true
+        - label: This is not a security vulnerability. Security reports use the private advisory process.
+          required: true

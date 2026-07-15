@@ -1,0 +1,51 @@
+{
+  "positive": [
+    {
+      "id": "current-task-refinement",
+      "prompt": "Revamp this instruction internally and continue: make the border match the latest attached reference while preserving everything else.",
+      "expected_behavior": "Announce one internal refinement, preserve current-task context, and continue the task without returning a synthetic prompt.",
+      "expected_result_shape": "One brief disclosure followed by normal task execution."
+    },
+    {
+      "id": "other-agent-export",
+      "prompt": "Use $human-to-action:refine-agent-prompts to write a paste-ready prompt for another agent to make this border match the attached reference while preserving everything else.",
+      "expected_behavior": "Create an exported prompt artifact and do not execute its embedded task.",
+      "expected_result_shape": "Paste-ready prompt first."
+    },
+    {
+      "id": "audit-without-rewrite",
+      "prompt": "Audit this system prompt for contradictions and missing completion criteria. Do not rewrite it.",
+      "expected_behavior": "Return behavior-changing findings without appending a revised prompt.",
+      "expected_result_shape": "Findings ordered by consequence."
+    },
+    {
+      "id": "gpt-5-6-migration",
+      "prompt": "Migrate this working prompt to GPT-5.6 while preserving its current behavior and reasoning effort.",
+      "expected_behavior": "Use the bundled GPT-5.6 reference and recommend measured, one-variable-at-a-time changes.",
+      "expected_result_shape": "Migration guidance with validation and stop rules."
+    },
+    {
+      "id": "visual-reference-handoff",
+      "prompt": "Create a new-task prompt that treats the latest approved screenshot as the visual source of truth and requires rendered verification.",
+      "expected_behavior": "Preserve reference authority and require visual inspection in the exported prompt.",
+      "expected_result_shape": "Paste-ready prompt with scoped validation."
+    }
+  ],
+  "negative": [
+    {
+      "id": "ordinary-task",
+      "prompt": "Fix the failing unit test and run the focused suite.",
+      "expected_behavior": "Stay out of the way and let the relevant coding workflow handle the request."
+    },
+    {
+      "id": "casual-chat",
+      "prompt": "How is your day going?",
+      "expected_behavior": "Do not activate prompt refinement."
+    },
+    {
+      "id": "general-copy-editing",
+      "prompt": "Shorten this button label from Continue to the next step.",
+      "expected_behavior": "Treat it as ordinary UX copy editing, not agent-prompt refinement."
+    }
+  ]
+}
