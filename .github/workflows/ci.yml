@@ -42,5 +42,5 @@ jobs:
       - name: Validate repository and plugin structure
         run: python scripts/validate.py
 
-      - name: Run hook tests
+      - name: Run explicit-activation tests
         run: python -m unittest discover -s tests -v

@@ -1,67 +1,63 @@
-# Tesseract Agent Extensions
+# HumanToAction
 
-A non-commercial collection of open-source agent skills and plugins maintained as personal developer and hobby projects.
+A non-commercial open-source Codex plugin maintained as a personal developer hobby project.
 
 This is an independent community project. It is not affiliated with, endorsed by, or an official product of OpenAI.
 
-## Catalog
-
-### HumanToAction
-
 **Human intent in. Agent-ready action out.**
 
-HumanToAction helps an agent preserve the user's actual context and choose the right destination for prompt refinement:
+HumanToAction is an explicit-only skill that helps an agent preserve the user's actual context and choose the right destination for prompt refinement:
 
 - Same task: refine the instruction internally, disclose that once, and continue the work.
 - Another agent, new task, handoff, or reusable artifact: return a paste-ready prompt.
 - Prompt audit: report consequential findings without silently rewriting the prompt.
-- Ordinary work: stay out of the way of the relevant domain workflow.
+- Ordinary work without an explicit HumanToAction invocation: stay completely out of the way.
 
-The automatic `UserPromptSubmit` hook emits the same fixed context on every turn. It does not dynamically inspect or rewrite the submitted prompt, and it does not make another model call. The bundled `human-to-action:refine-agent-prompts` skill supplies the semantic refinement workflow when relevant.
+HumanToAction has no lifecycle hook and does not run automatically. It loads only when you explicitly select `@HumanToAction` in the app or invoke `$human-to-action:refine-agent-prompts` in the prompt. It uses the current model call rather than starting another one.
 
 ## Install
-
-HumanToAction currently supports macOS and Linux environments that provide `/usr/bin/python3`. Windows is not supported in version 0.1.0.
 
 Add this repository as a Codex marketplace:
 
 ```bash
-codex plugin marketplace add The-Tesseract-Team/agent-extensions --ref main
+codex plugin marketplace add The-Tesseract-Team/human-to-action --ref main
 ```
 
 Then install the plugin:
 
 ```bash
-codex plugin add human-to-action@tesseract-agent-extensions
+codex plugin add human-to-action@tesseract-team
 ```
 
-Review the `UserPromptSubmit` command hook when Codex asks for trust. Do not bypass that review. Restart the ChatGPT desktop app and begin a new task so newly installed skills and hooks are discovered.
+Restart the ChatGPT desktop app and begin a new task so the bundled skill is discovered.
 
 ## Use
 
-You do not need a trigger phrase for ordinary automatic context guidance. Ask for prompt refinement only when that is what you want.
+HumanToAction never activates from prompt-refinement intent alone. Explicitly select `@HumanToAction` in the app or include `$human-to-action:refine-agent-prompts` in the message.
 
 Same-task refinement:
 
 ```text
-Refine this instruction internally and continue: make the border match the attached reference.
+@HumanToAction Refine this instruction internally and continue: make the border match the attached reference.
 ```
 
-Reusable prompt for another agent:
+New-task handoff:
 
 ```text
-Use $human-to-action:refine-agent-prompts to write a paste-ready prompt for another agent to make the border match the attached reference.
+@HumanToAction new task: prepare a paste-ready prompt for another agent to make the border match the attached reference.
 ```
 
-Audit without rewriting:
+The phrases `new task`, `new thread`, `new workspace`, and `handoff` select exported-prompt mode when HumanToAction is explicitly invoked. The skill returns the paste-ready handoff and does not execute it.
+
+Direct skill invocation:
 
 ```text
-Audit this agent prompt for contradictions and missing completion criteria. Do not rewrite it.
+Use $human-to-action:refine-agent-prompts to audit this agent prompt without rewriting it.
 ```
 
 ## Privacy and trust
 
-The local hook receives the normal lifecycle payload from Codex, drains it without retaining it, and emits fixed guidance. It contains no network, file-writing, telemetry, or logging code. Installing a command hook still creates a trust boundary: inspect the source and approve only the version you intend to run.
+The plugin contains instructions and references only. It has no command hook, executable runtime, network access, persistence, telemetry, or prompt logging.
 
 See [PRIVACY.md](PRIVACY.md) and [SECURITY.md](SECURITY.md) for the complete boundaries and reporting process.
 
@@ -69,14 +65,12 @@ See [PRIVACY.md](PRIVACY.md) and [SECURITY.md](SECURITY.md) for the complete bou
 
 ```text
 .agents/plugins/marketplace.json   Marketplace catalog
-plugins/human-to-action/           Installable HumanToAction plugin
-skills/                            Future standalone skills
-evals/                             Routing cases
-tests/                             Deterministic hook tests
+.codex-plugin/plugin.json          Plugin manifest
+skills/refine-agent-prompts/       Bundled refinement skill
+evals/cases.json                   Routing cases
+tests/                             Deterministic activation and routing tests
 scripts/validate.py                Publication and structure checks
 ```
-
-Bundled skills stay inside their plugin. The top-level `skills/` directory is reserved for standalone skills so the same workflow is not duplicated.
 
 ## Development
 
@@ -88,7 +82,7 @@ python scripts/validate.py
 python -m unittest discover -s tests -v
 ```
 
-The deterministic tests verify fixed hook output, prompt non-echoing, namespace routing, manifest consistency, marketplace structure, public-path hygiene, and the documented evaluation cases. They do not prove model behavior; semantic routing should also be tested in a new Codex task after installation.
+The deterministic tests verify explicit-only activation metadata, handoff routing terms, manifest consistency, marketplace structure, public-path hygiene, and the documented evaluation cases. They do not prove model behavior; semantic routing should also be tested in a new Codex task after installation.
 
 ## Inspiration
 

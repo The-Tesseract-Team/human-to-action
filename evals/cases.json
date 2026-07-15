@@ -1,0 +1,56 @@
+{
+  "positive": [
+    {
+      "id": "current-task-refinement",
+      "prompt": "@HumanToAction Refine this instruction internally and continue: make the border match the latest attached reference while preserving everything else.",
+      "expected_behavior": "Announce one internal refinement, preserve current-task context, and continue the task without returning a synthetic prompt.",
+      "expected_result_shape": "One brief disclosure followed by normal task execution."
+    },
+    {
+      "id": "new-task-handoff",
+      "prompt": "@HumanToAction new task: make this border match the attached reference while preserving everything else.",
+      "expected_behavior": "Return a paste-ready new-task handoff and do not execute its embedded task.",
+      "expected_result_shape": "Paste-ready prompt first."
+    },
+    {
+      "id": "new-thread-handoff",
+      "prompt": "@HumanToAction new thread: diagnose why this form submits when nothing changed.",
+      "expected_behavior": "Return a paste-ready new-thread handoff and do not diagnose the form in this task.",
+      "expected_result_shape": "Paste-ready prompt first."
+    },
+    {
+      "id": "new-workspace-handoff",
+      "prompt": "$human-to-action:refine-agent-prompts new workspace: rebuild the supplied screen without changing backend behavior.",
+      "expected_behavior": "Return a paste-ready workspace handoff containing the material context and boundaries.",
+      "expected_result_shape": "Paste-ready prompt first."
+    },
+    {
+      "id": "explicit-handoff",
+      "prompt": "@HumanToAction handoff: continue the current investigation in another agent with the evidence already gathered.",
+      "expected_behavior": "Return a paste-ready handoff that preserves established evidence and unresolved questions.",
+      "expected_result_shape": "Paste-ready prompt with scoped validation."
+    }
+  ],
+  "negative": [
+    {
+      "id": "uninvoked-refinement",
+      "prompt": "Revamp this instruction internally and continue: explain the project in one sentence.",
+      "expected_behavior": "Do not activate HumanToAction; handle the request through ordinary Codex behavior."
+    },
+    {
+      "id": "uninvoked-export",
+      "prompt": "Write a prompt for another agent to make this border match the attached reference.",
+      "expected_behavior": "Do not activate HumanToAction; answer the ordinary prompt-writing request directly."
+    },
+    {
+      "id": "ordinary-task",
+      "prompt": "Fix the failing unit test and run the focused suite.",
+      "expected_behavior": "Stay out of the way and let the relevant coding workflow handle the request."
+    },
+    {
+      "id": "casual-chat",
+      "prompt": "How is your day going?",
+      "expected_behavior": "Do not activate prompt refinement."
+    }
+  ]
+}

@@ -4,14 +4,14 @@ Describe the user-visible result and why it belongs in this repository.
 
 ## Scope
 
-- Extension or repository area changed:
+- HumanToAction or repository area changed:
 - Behavior intentionally preserved:
 - Known limitations:
 
 ## Privacy and security
 
 - [ ] No credentials, private prompts, personal data, caches, or absolute local paths are included.
-- [ ] Any network, persistence, telemetry, command-hook, or permission change is disclosed and justified.
+- [ ] Any network, persistence, telemetry, automatic-trigger, or permission change is disclosed and justified.
 - [ ] Public metadata, links, and attribution remain accurate.
 
 ## Validation

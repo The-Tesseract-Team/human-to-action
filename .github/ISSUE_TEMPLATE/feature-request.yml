@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose a focused improvement to an extension or the marketplace
+description: Propose a focused improvement to HumanToAction
 title: "[Feature]: "
 labels:
   - enhancement
@@ -22,7 +22,7 @@ body:
     id: boundaries
     attributes:
       label: Privacy, security, and compatibility
-      description: Note any new network, persistence, telemetry, hook, platform, or model dependency.
+      description: Note any new network, persistence, telemetry, automatic-trigger, platform, or model dependency.
     validations:
       required: true
   - type: textarea

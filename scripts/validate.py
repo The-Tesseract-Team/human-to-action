@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-"""Validate the public marketplace and HumanToAction bundle without a model call."""
+"""Validate the standalone HumanToAction repository without a model call."""
 
 from __future__ import annotations
 
-import ast
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -14,13 +12,13 @@ import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_REL = Path("plugins/human-to-action")
+PLUGIN_REL = Path(".")
 PLUGIN_ROOT = REPO_ROOT / PLUGIN_REL
 PLUGIN_NAME = "human-to-action"
 SKILL_NAME = "refine-agent-prompts"
 NAMESPACED_SKILL = f"{PLUGIN_NAME}:{SKILL_NAME}"
-MARKETPLACE_NAME = "tesseract-agent-extensions"
-REPOSITORY_URL = "https://github.com/The-Tesseract-Team/agent-extensions"
+MARKETPLACE_NAME = "tesseract-team"
+REPOSITORY_URL = "https://github.com/The-Tesseract-Team/human-to-action"
 
 REQUIRED_REPO_PATHS = (
     ".agents/plugins/marketplace.json",
@@ -41,17 +39,14 @@ REQUIRED_REPO_PATHS = (
     "SECURITY.md",
     "SUPPORT.md",
     "TRADEMARKS.md",
-    "evals/human-to-action/cases.json",
+    "evals/cases.json",
     "requirements-dev.txt",
     "scripts/validate.py",
-    "skills/README.md",
-    "tests/test_human_to_action_hook.py",
+    "tests/test_human_to_action_skill.py",
 )
 
 REQUIRED_PLUGIN_PATHS = (
     ".codex-plugin/plugin.json",
-    "hooks/hooks.json",
-    "hooks/human-to-action.py",
     "skills/refine-agent-prompts/SKILL.md",
     "skills/refine-agent-prompts/agents/openai.yaml",
     "skills/refine-agent-prompts/references/gpt-5-6-prompt-guidance.md",
@@ -78,6 +73,9 @@ STALE_IDENTITIES = (
     "context-" + "first-prompting",
     "Context-" + "First Prompting",
     "Local " + "developer",
+    "tesseract-" + "agent-extensions",
+    "Tesseract " + "Agent Extensions",
+    "The-Tesseract-Team/" + "agent-extensions",
 )
 
 
@@ -118,6 +116,9 @@ def validate_required_paths() -> None:
         if not (PLUGIN_ROOT / path).is_file()
     )
     assert not missing, f"missing required public files: {', '.join(missing)}"
+    assert not (REPO_ROOT / "plugins").exists(), "obsolete plugins/ wrapper still exists"
+    assert not (REPO_ROOT / "hooks").exists(), "automatic hooks must not be present"
+    assert not (REPO_ROOT / "skills/README.md").exists(), "obsolete skills placeholder exists"
 
 
 def validate_public_text_surface() -> None:
@@ -150,13 +151,12 @@ def validate_manifest() -> None:
     manifest = load_json(PLUGIN_ROOT / ".codex-plugin/plugin.json")
     assert isinstance(manifest, dict), "plugin manifest must be an object"
     assert manifest.get("name") == PLUGIN_NAME
-    assert PLUGIN_ROOT.name == manifest.get("name"), "plugin folder and manifest name differ"
     assert SEMVER.fullmatch(str(manifest.get("version", ""))), "invalid plugin version"
     assert manifest.get("description")
     assert manifest.get("skills") == "./skills/"
     assert manifest.get("license") == "MIT"
     assert manifest.get("repository") == REPOSITORY_URL
-    assert "hooks" not in manifest, "hooks must use default discovery, not manifest metadata"
+    assert "hooks" not in manifest, "explicit-only plugin must not declare hooks"
 
     author = manifest.get("author")
     assert author == {
@@ -179,14 +179,15 @@ def validate_marketplace() -> None:
     marketplace = load_json(REPO_ROOT / ".agents/plugins/marketplace.json")
     assert isinstance(marketplace, dict)
     assert marketplace.get("name") == MARKETPLACE_NAME
-    assert marketplace.get("interface") == {"displayName": "Tesseract Agent Extensions"}
+    assert marketplace.get("interface") == {"displayName": "The Tesseract Team"}
     plugins = marketplace.get("plugins")
     assert isinstance(plugins, list) and len(plugins) == 1
     entry = plugins[0]
     assert entry.get("name") == PLUGIN_NAME
     assert entry.get("source") == {
-        "source": "local",
-        "path": "./plugins/human-to-action",
+        "source": "url",
+        "url": f"{REPOSITORY_URL}.git",
+        "ref": "main",
     }
     assert entry.get("policy") == {
         "installation": "AVAILABLE",
@@ -212,61 +213,6 @@ def validate_ci() -> None:
     )
 
 
-def validate_hook() -> None:
-    hook_path = PLUGIN_ROOT / "hooks/human-to-action.py"
-    hooks = load_json(PLUGIN_ROOT / "hooks/hooks.json")
-    handlers = hooks["hooks"]["UserPromptSubmit"]
-    assert isinstance(handlers, list) and len(handlers) == 1
-    command_hooks = handlers[0]["hooks"]
-    assert isinstance(command_hooks, list) and len(command_hooks) == 1
-    assert command_hooks[0] == {
-        "type": "command",
-        "command": '/usr/bin/python3 "$PLUGIN_ROOT/hooks/human-to-action.py"',
-        "timeout": 5,
-    }
-
-    tree = ast.parse(hook_path.read_text(encoding="utf-8"), filename=str(hook_path))
-    imports = {
-        alias.name.split(".", 1)[0]
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Import)
-        for alias in node.names
-    }
-    imports.update(
-        node.module.split(".", 1)[0]
-        for node in ast.walk(tree)
-        if isinstance(node, ast.ImportFrom) and node.module
-    )
-    assert imports <= {"sys"}, "hook imports an unreviewed module"
-    assert not any(
-        isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Name)
-        and node.func.id in {"open", "exec", "eval"}
-        for node in ast.walk(tree)
-    ), "hook uses an unreviewed file or code-execution primitive"
-
-    marker = "DO_NOT_ECHO_THIS_PROMPT_MARKER"
-    outputs: list[str] = []
-    for prompt in (marker, "different prompt"):
-        payload = json.dumps({"hook_event_name": "UserPromptSubmit", "prompt": prompt})
-        result = subprocess.run(
-            [sys.executable, str(hook_path)],
-            cwd=REPO_ROOT,
-            input=payload,
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=5,
-        )
-        assert result.returncode == 0, "hook smoke test failed"
-        assert not result.stderr, "hook wrote to stderr"
-        outputs.append(result.stdout)
-    assert outputs[0] == outputs[1], "hook output depends on submitted prompt"
-    assert marker not in outputs[0], "hook echoed the submitted prompt"
-    assert NAMESPACED_SKILL in outputs[0]
-    assert "another agent" in outputs[0]
-
-
 def validate_skill() -> None:
     skill_path = PLUGIN_ROOT / "skills/refine-agent-prompts/SKILL.md"
     skill_text = skill_path.read_text(encoding="utf-8")
@@ -279,33 +225,45 @@ def validate_skill() -> None:
     assert isinstance(frontmatter, dict)
     assert frontmatter.get("name") == SKILL_NAME
     assert isinstance(frontmatter.get("description"), str)
+    assert "Explicit-only" in frontmatter["description"]
+    assert "## Activation gate" in skill_text
+    assert "@HumanToAction" in skill_text
+    assert f"${NAMESPACED_SKILL}" in skill_text
+    for handoff_signal in ("new task", "new thread", "new workspace", "handoff"):
+        assert handoff_signal in skill_text
 
     agent = load_yaml(PLUGIN_ROOT / "skills/refine-agent-prompts/agents/openai.yaml")
     assert isinstance(agent, dict)
     assert f"${NAMESPACED_SKILL}" in agent["interface"]["default_prompt"]
-    assert agent["policy"]["allow_implicit_invocation"] is True
+    assert agent["policy"]["allow_implicit_invocation"] is False
 
 
 def validate_evals() -> None:
-    cases = load_json(REPO_ROOT / "evals/human-to-action/cases.json")
+    cases = load_json(REPO_ROOT / "evals/cases.json")
     assert isinstance(cases, dict)
     positive = cases.get("positive")
     negative = cases.get("negative")
     assert isinstance(positive, list) and isinstance(negative, list)
     assert {case.get("id") for case in positive} == {
         "current-task-refinement",
-        "other-agent-export",
-        "audit-without-rewrite",
-        "gpt-5-6-migration",
-        "visual-reference-handoff",
+        "new-task-handoff",
+        "new-thread-handoff",
+        "new-workspace-handoff",
+        "explicit-handoff",
     }
     assert {case.get("id") for case in negative} == {
+        "uninvoked-refinement",
+        "uninvoked-export",
         "ordinary-task",
         "casual-chat",
-        "general-copy-editing",
     }
-    exported = next(case for case in positive if case.get("id") == "other-agent-export")
-    assert f"${NAMESPACED_SKILL}" in exported.get("prompt", "")
+    for case in positive:
+        prompt = case.get("prompt", "")
+        assert "@HumanToAction" in prompt or f"${NAMESPACED_SKILL}" in prompt
+    for case in negative:
+        prompt = case.get("prompt", "")
+        assert "@HumanToAction" not in prompt
+        assert f"${NAMESPACED_SKILL}" not in prompt
 
 
 def validate_markdown_links() -> None:
@@ -336,7 +294,6 @@ def main() -> int:
         validate_manifest,
         validate_marketplace,
         validate_ci,
-        validate_hook,
         validate_skill,
         validate_evals,
         validate_markdown_links,
@@ -347,7 +304,7 @@ def main() -> int:
     except (AssertionError, KeyError, TypeError, ValueError) as exc:
         print(f"validation failed: {exc}", file=sys.stderr)
         return 1
-    print("repository checks passed: structure, metadata, hook behavior, and redacted pattern scan")
+    print("repository checks passed: root structure, explicit-only metadata, routing cases, and redacted pattern scan")
     return 0
 
 

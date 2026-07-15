@@ -5,9 +5,9 @@ Contributions that keep the repository small, inspectable, and privacy-preservin
 ## Before changing code
 
 - Open or reference an issue for material behavior changes.
-- Keep bundled skills inside their plugin; use `skills/` only for standalone skills.
+- Keep the plugin manifest, bundled skill, and references at the repository root; do not reintroduce a multi-plugin wrapper.
 - Do not add telemetry, network access, prompt logging, or persistence without an explicit proposal and privacy review.
-- Do not weaken command-hook trust, security checks, or fixed-output tests.
+- Do not add an automatic hook or enable implicit skill invocation without an explicit behavior and privacy review.
 - Never commit credentials, private prompts, personal data, generated caches, or absolute local paths.
 
 ## Validate locally

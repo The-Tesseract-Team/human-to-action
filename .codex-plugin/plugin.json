@@ -1,13 +1,13 @@
 {
   "name": "human-to-action",
-  "version": "0.1.0",
-  "description": "Preserve human intent and route prompt refinement to the right destination.",
+  "version": "0.2.0",
+  "description": "Explicitly refine agent instructions and route handoffs without automatic hooks.",
   "author": {
     "name": "Benny Ebere",
     "url": "https://github.com/tesseractT"
   },
-  "homepage": "https://github.com/The-Tesseract-Team/agent-extensions#humantoaction",
-  "repository": "https://github.com/The-Tesseract-Team/agent-extensions",
+  "homepage": "https://github.com/The-Tesseract-Team/human-to-action",
+  "repository": "https://github.com/The-Tesseract-Team/human-to-action",
   "license": "MIT",
   "keywords": [
     "agents",
@@ -20,14 +20,14 @@
   "interface": {
     "displayName": "HumanToAction",
     "shortDescription": "Turn human intent into agent-ready action",
-    "longDescription": "Adds a lightweight context preflight, refines same-task instructions internally, and creates paste-ready prompts only for handoffs, new tasks, other agents, or explicit artifacts.",
+    "longDescription": "When explicitly invoked, refines same-task instructions internally or creates paste-ready prompts for handoffs, new tasks, new threads, new workspaces, other agents, and reusable artifacts.",
     "developerName": "The Tesseract Team",
     "category": "Productivity",
     "capabilities": [
       "Interactive"
     ],
-    "websiteURL": "https://github.com/The-Tesseract-Team/agent-extensions#humantoaction",
-    "privacyPolicyURL": "https://github.com/The-Tesseract-Team/agent-extensions/blob/main/PRIVACY.md",
+    "websiteURL": "https://github.com/The-Tesseract-Team/human-to-action",
+    "privacyPolicyURL": "https://github.com/The-Tesseract-Team/human-to-action/blob/main/PRIVACY.md",
     "defaultPrompt": [
       "Refine this instruction internally and continue",
       "Audit this agent prompt without rewriting it",

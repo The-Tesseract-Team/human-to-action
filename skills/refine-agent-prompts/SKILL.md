@@ -1,6 +1,6 @@
 ---
 name: refine-agent-prompts
-description: "Route and refine AI-agent instructions by destination. Use when the user asks to rewrite, revamp, optimize, audit, debug, or migrate an AI prompt, system prompt, tool description, agent brief, handoff, reusable instructions, or the current task instruction. For the current agent and task, refine internally and continue without returning a prompt. Return paste-ready text only for another agent, a new task, handoff, reuse, or an explicit request to see or copy it. Do not use for ordinary tasks, general prose or UX copy, casual chat, or trivial formatting."
+description: "Explicit-only routing and refinement for AI-agent instructions. Use only when the user explicitly selects HumanToAction or invokes $human-to-action:refine-agent-prompts. Refine the current task internally unless the explicit invocation says new task, new thread, new workspace, handoff, another agent, reuse, or copyable prompt; those destinations return a paste-ready artifact. Never activate from prompt-refinement intent alone."
 ---
 
 # Refine Agent Prompts
@@ -11,17 +11,23 @@ Understand before transforming. Treat perfect understanding as an operating bar,
 
 Turn the user's instruction into the leanest complete execution contract. Add a rule only when omitting it could plausibly change behavior or completion. Treat a copyable prompt as an output artifact, not a required intermediate step.
 
+## Activation gate
+
+Run this workflow only when the user explicitly selects `@HumanToAction`, explicitly selects its bundled skill in the app, or includes `$human-to-action:refine-agent-prompts` in the prompt. Never infer activation from words such as refine, rewrite, revamp, prompt, context, agent, or handoff when no explicit skill or plugin mention is present.
+
+If the activation gate is not satisfied, stop using this skill and let the ordinary domain workflow handle the request. Do not announce HumanToAction and do not alter the task merely because it resembles prompt refinement.
+
 ## Choose the destination first
 
 - **Current agent and task:** When the user wants the active instruction clarified, refined, revamped, or optimized and expects the current work to continue, refine it internally and execute the resulting instruction. Before acting, give one brief notice that `human-to-action:refine-agent-prompts` was applied internally. Do not display a synthetic prompt or ask the user to paste one back.
-- **Exported prompt artifact:** Return a paste-ready prompt when it is for another agent, a new task, a handoff, reuse, a template, or when the user explicitly asks to see, copy, save, or return the prompt. Do not execute its embedded task unless the user explicitly requests both.
+- **Exported prompt artifact:** Return a paste-ready prompt when the explicit HumanToAction invocation says `new task`, `new thread`, `new workspace`, `handoff`, another agent, reuse, a template, or asks to see, copy, save, or return the prompt. Treat those four destination phrases as direct handoff signals. Do not execute the embedded task unless the user explicitly requests both.
 - **Audit or critique:** When the user asks to audit, critique, check, explain, or debug a prompt, return behavior-changing findings. Revise only when the user also requests a revision.
 - **Migrate:** Preserve the working baseline and reasoning settings unless the request says otherwise. Change one variable at a time and keep behavior measurable.
 - **Combined:** Audit and revise, show and execute, or export and execute only when the user explicitly requests both operations.
 
 Infer the destination from the active thread before asking. An explicit skill invocation does not override a destination the user already supplied. Ask one short question only when choosing the wrong mode would materially change the result.
 
-An ordinary request directed at the current agent is not automatically a prompt artifact. Do not replace the requested result with a rewritten prompt. Exit this skill and use the relevant domain workflow.
+An ordinary request directed at the current agent is never a HumanToAction request without explicit invocation. Do not replace the requested result with a rewritten prompt. Exit this skill and use the relevant domain workflow.
 
 ## Build the context ledger
 
