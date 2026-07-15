@@ -1,81 +1,92 @@
 # HumanToAction
 
-A non-commercial open-source Codex plugin maintained as a personal developer hobby project.
+**Say it naturally. HumanToAction makes it executable.**
 
-This is an independent community project. It is not affiliated with, endorsed by, or an official product of OpenAI.
-
-**Human intent in. Agent-ready action out.**
+You should not need to write a mini-spec every time you talk to an agent. HumanToAction turns the useful context already in your task into a brief the agent can actually work from.
 
 ![HumanToAction usage preview showing explicit same-task refinement and a new-task handoff](assets/human-to-action-preview.png)
 
-HumanToAction is an explicit-only skill that helps an agent preserve the user's actual context and choose the right destination for prompt refinement:
+## What it does
 
-- Same task: refine the instruction internally, disclose that once, and continue the work.
-- Another agent, new task, handoff, or reusable artifact: return a paste-ready prompt.
-- Prompt audit: report consequential findings without silently rewriting the prompt.
-- Ordinary work without an explicit HumanToAction invocation: stay completely out of the way.
+You say:
 
-HumanToAction has no lifecycle hook and does not run automatically. It loads only when you explicitly select `@HumanToAction` in the app or invoke `$human-to-action:refine-agent-prompts` in the prompt. It uses the current model call rather than starting another one.
+```text
+@HumanToAction Make this border match the attached reference.
+```
+
+HumanToAction makes the parts that change the result explicit:
+
+- **Source of truth:** which reference, file, or decision controls the work.
+- **Preserve:** what the agent must leave alone.
+- **Verify:** how the result should be checked before it is called done.
+- **Stop:** where the task ends so it does not grow into something else.
+
+Then it picks the right destination:
+
+- **Same task:** applies the clearer brief internally and keeps working. No copy-and-paste loop.
+- **New task, thread, workspace, or handoff:** returns a paste-ready brief carrying the relevant context forward.
+- **Prompt audit:** points out contradictions, missing boundaries, and weak completion criteria without rewriting unless asked.
+
+## Use it
+
+Keep working in the current task:
+
+```text
+@HumanToAction Refine this internally and continue: make the border match the attached reference.
+```
+
+Create a handoff for somewhere else:
+
+```text
+@HumanToAction new task: make the border match the attached reference.
+```
+
+Audit an agent prompt:
+
+```text
+@HumanToAction Audit this prompt without rewriting it.
+```
+
+You can also invoke the bundled skill directly:
+
+```text
+$human-to-action:refine-agent-prompts
+```
 
 ## Install
 
-Add this repository as a Codex marketplace:
+Add the marketplace:
 
 ```bash
 codex plugin marketplace add The-Tesseract-Team/human-to-action --ref main
 ```
 
-Then install the plugin:
+Install HumanToAction:
 
 ```bash
 codex plugin add human-to-action@tesseract-team
 ```
 
-Restart the ChatGPT desktop app and begin a new task so the bundled skill is discovered.
+Restart the ChatGPT desktop app and begin a new task so Codex discovers the skill.
 
-## Use
+## It only shows up when invited
 
-HumanToAction never activates from prompt-refinement intent alone. Explicitly select `@HumanToAction` in the app or include `$human-to-action:refine-agent-prompts` in the message.
+**No `@HumanToAction`, no HumanToAction.**
 
-Same-task refinement:
+There is no lifecycle hook watching every message. The plugin contains instructions and reference material—no background process, network access, persistence, telemetry, or prompt logging.
 
-```text
-@HumanToAction Refine this instruction internally and continue: make the border match the attached reference.
-```
-
-New-task handoff:
-
-```text
-@HumanToAction new task: prepare a paste-ready prompt for another agent to make the border match the attached reference.
-```
-
-The phrases `new task`, `new thread`, `new workspace`, and `handoff` select exported-prompt mode when HumanToAction is explicitly invoked. The skill returns the paste-ready handoff and does not execute it.
-
-Direct skill invocation:
-
-```text
-Use $human-to-action:refine-agent-prompts to audit this agent prompt without rewriting it.
-```
-
-## Privacy and trust
-
-The plugin contains instructions and references only. It has no command hook, executable runtime, network access, persistence, telemetry, or prompt logging.
-
-See [PRIVACY.md](PRIVACY.md) and [SECURITY.md](SECURITY.md) for the complete boundaries and reporting process.
-
-## Repository layout
+<details>
+<summary>Development and project files</summary>
 
 ```text
 .agents/plugins/marketplace.json   Marketplace catalog
 .codex-plugin/plugin.json          Plugin manifest
-assets/                             Public README preview
-skills/refine-agent-prompts/       Bundled refinement skill
-evals/cases.json                   Routing cases
-tests/                             Deterministic activation and routing tests
-scripts/validate.py                Publication and structure checks
+assets/                             README preview
+skills/refine-agent-prompts/       HumanToAction skill
+evals/cases.json                   Routing examples
+tests/                             Explicit-activation tests
+scripts/validate.py                Repository checks
 ```
-
-## Development
 
 ```bash
 python3 -m venv .venv
@@ -85,18 +96,8 @@ python scripts/validate.py
 python -m unittest discover -s tests -v
 ```
 
-The deterministic tests verify explicit-only activation metadata, handoff routing terms, manifest consistency, marketplace structure, public-path hygiene, and the documented evaluation cases. They do not prove model behavior; semantic routing should also be tested in a new Codex task after installation.
+</details>
 
-## Inspiration
+## Project links
 
-The bundled checklist is inspired by [OpenAI's prompting guidance for GPT-5.6](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6). HumanToAction paraphrases and operationalizes selected ideas; it does not reproduce the article or claim official compatibility certification.
-
-## Community and license
-
-- [Contributing](CONTRIBUTING.md)
-- [Support](SUPPORT.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Changelog](CHANGELOG.md)
-- [Trademark guidance](TRADEMARKS.md)
-
-Source is available under the [MIT License](LICENSE).
+[Privacy](PRIVACY.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [MIT License](LICENSE) · [Names and attribution](TRADEMARKS.md)
