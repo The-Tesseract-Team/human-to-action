@@ -201,6 +201,7 @@ def validate_ci() -> None:
     assert "persist-credentials: false" in workflow
     assert "runs-on: ubuntu-24.04" in workflow
     assert "timeout-minutes: 10" in workflow
+    assert "cache-dependency-path: requirements-dev.txt" in workflow
     action_refs = re.findall(r"uses:\s+[^@\s]+@([^\s]+)", workflow)
     assert action_refs, "CI has no pinned actions"
     assert all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in action_refs), (
