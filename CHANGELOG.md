@@ -2,6 +2,12 @@
 
 All notable user-visible changes are recorded here.
 
+## Unreleased
+
+### Added
+
+- Added a high-resolution README walkthrough showing explicit same-task refinement and new-task handoff behavior.
+
 ## 0.2.0 - 2026-07-15
 
 ### Changed

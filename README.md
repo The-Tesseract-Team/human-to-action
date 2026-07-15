@@ -6,6 +6,8 @@ This is an independent community project. It is not affiliated with, endorsed by
 
 **Human intent in. Agent-ready action out.**
 
+![HumanToAction usage preview showing explicit same-task refinement and a new-task handoff](assets/human-to-action-preview.png)
+
 HumanToAction is an explicit-only skill that helps an agent preserve the user's actual context and choose the right destination for prompt refinement:
 
 - Same task: refine the instruction internally, disclose that once, and continue the work.
@@ -66,6 +68,7 @@ See [PRIVACY.md](PRIVACY.md) and [SECURITY.md](SECURITY.md) for the complete bou
 ```text
 .agents/plugins/marketplace.json   Marketplace catalog
 .codex-plugin/plugin.json          Plugin manifest
+assets/                             Public README preview
 skills/refine-agent-prompts/       Bundled refinement skill
 evals/cases.json                   Routing cases
 tests/                             Deterministic activation and routing tests

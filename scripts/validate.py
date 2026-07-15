@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import json
 import re
+import struct
 import sys
+import zlib
 from pathlib import Path
 
 import yaml
@@ -39,6 +41,7 @@ REQUIRED_REPO_PATHS = (
     "SECURITY.md",
     "SUPPORT.md",
     "TRADEMARKS.md",
+    "assets/human-to-action-preview.png",
     "evals/cases.json",
     "requirements-dev.txt",
     "scripts/validate.py",
@@ -53,6 +56,7 @@ REQUIRED_PLUGIN_PATHS = (
 )
 
 TEXT_SUFFIXES = {"", ".json", ".md", ".py", ".txt", ".yaml", ".yml"}
+APPROVED_BINARY_FILES = {"assets/human-to-action-preview.png"}
 EXCLUDED_PARTS = {".git", ".venv", "__pycache__"}
 SEMVER = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
@@ -125,6 +129,8 @@ def validate_public_text_surface() -> None:
     for path in iter_public_files():
         rel = relative(path)
         assert path.suffix != ".pyc", f"compiled Python found: {rel}"
+        if rel in APPROVED_BINARY_FILES:
+            continue
         assert path.suffix.lower() in TEXT_SUFFIXES, f"unreviewed binary or file type: {rel}"
         try:
             text = path.read_text(encoding="utf-8")
@@ -145,6 +151,55 @@ def validate_serialized_files() -> None:
             load_json(path)
         elif path.suffix.lower() in {".yaml", ".yml"}:
             load_yaml(path)
+
+
+def validate_png_assets() -> None:
+    path = REPO_ROOT / "assets/human-to-action-preview.png"
+    data = path.read_bytes()
+    assert len(data) <= 2_000_000, "README preview is unexpectedly large"
+    assert data.startswith(b"\x89PNG\r\n\x1a\n"), "README preview is not a PNG"
+
+    chunks: list[tuple[bytes, bytes]] = []
+    offset = 8
+    while offset < len(data):
+        assert offset + 12 <= len(data), "truncated PNG chunk"
+        length = struct.unpack(">I", data[offset : offset + 4])[0]
+        chunk_type = data[offset + 4 : offset + 8]
+        chunk_start = offset + 8
+        chunk_end = chunk_start + length
+        assert chunk_end + 4 <= len(data), "invalid PNG chunk length"
+        payload = data[chunk_start:chunk_end]
+        expected_crc = struct.unpack(">I", data[chunk_end : chunk_end + 4])[0]
+        actual_crc = zlib.crc32(chunk_type + payload) & 0xFFFFFFFF
+        assert actual_crc == expected_crc, f"invalid PNG CRC for {chunk_type!r}"
+        chunks.append((chunk_type, payload))
+        offset = chunk_end + 4
+
+    assert offset == len(data), "unexpected trailing PNG data"
+    chunk_types = [chunk_type for chunk_type, _ in chunks]
+    assert chunk_types[0] == b"IHDR" and chunk_types[-1] == b"IEND"
+    assert set(chunk_types) <= {b"IHDR", b"caBX", b"IDAT", b"IEND"}, (
+        "README preview contains unreviewed PNG metadata"
+    )
+
+    ihdr = chunks[0][1]
+    assert len(ihdr) == 13
+    width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack(
+        ">IIBBBBB", ihdr
+    )
+    assert (width, height) == (1672, 941)
+    assert (bit_depth, color_type, compression, filtering, interlace) == (8, 2, 0, 0, 0)
+
+    provenance = b"".join(payload for chunk_type, payload in chunks if chunk_type == b"caBX")
+    assert b"OpenAI Media Service API" in provenance
+    assert b"trainedAlgorithmicMedia" in provenance
+    for private_marker in (
+        b"/Users/",
+        b"/home/",
+        b"BEGIN " + b"PRIVATE KEY",
+        b"sk" + b"-",
+    ):
+        assert private_marker not in provenance, "private marker found in PNG provenance"
 
 
 def validate_manifest() -> None:
@@ -291,6 +346,7 @@ def main() -> int:
         validate_required_paths,
         validate_public_text_surface,
         validate_serialized_files,
+        validate_png_assets,
         validate_manifest,
         validate_marketplace,
         validate_ci,
